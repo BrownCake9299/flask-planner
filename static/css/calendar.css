@@ -1,0 +1,29 @@
+.calendar {
+    display: grid;
+    grid-template-columns: 10% 10% 10% 10% 10% 10% 10% 10%;
+    padding: 10px;
+}
+
+.calendar > div {
+    padding: 10px;
+    font-size: 20px;
+    text-align: center;
+}
+
+.days-of-the-week {
+    background-color: saddlebrown;
+    color: lightgrey;
+    border: 1px solid sandybrown;
+}
+
+.n-of-week {
+    background-color: darkcyan;
+    color: lightsteelblue;
+    border: 1px solid gray;
+}
+
+.n-of-day {
+    background-color: rebeccapurple;
+    color: beige;
+    border: 1px solid mediumpurple;
+}

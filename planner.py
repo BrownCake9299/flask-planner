@@ -8,6 +8,7 @@ from wtforms.validators import DataRequired
 import os
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+import calendar as cld
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -64,6 +65,30 @@ def index():
     return render_template('index.html',
                            current_time=datetime.now(UTC), name=session.get('name'),
                            form=form, known=session.get('known', False))
+
+@app.route('/calendar')
+def calendar():
+    daysOfTheWeek = ['Mon.', 'Tue.', 'Wed.', 'Thu.', 'Fri.', 'Sat.', 'Sun.']
+
+    currentDate = datetime.now(UTC)
+    nOfDaysInMonth = cld.monthrange(currentDate.year, currentDate.month)[1]
+    startDayOfMonth = datetime(currentDate.year, currentDate.month, 1).weekday()
+    day = 1
+    ndays = []
+    for n in range(6):
+        week = []
+        for m in range(7):
+            if startDayOfMonth > 0:
+                week.append('')
+                startDayOfMonth -= 1
+            elif day <= nOfDaysInMonth:
+                week.append(day)
+                day += 1
+            else:
+                week.append('')
+        ndays.append(week)
+
+    return render_template('calendar.html', ndays=ndays, daysOfTheWeek=daysOfTheWeek)
 
 @app.route('/user/<name>')
 def user(name):
