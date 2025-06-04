@@ -1,6 +1,6 @@
 from flask import Flask, render_template, session, redirect, url_for, flash
 from flask_bootstrap import Bootstrap
-from datetime import datetime, UTC
+from datetime import datetime, UTC, timedelta
 from flask_moment import Moment
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
@@ -68,11 +68,30 @@ def index():
 
 @app.route('/calendar')
 def calendar():
+    currentDate = datetime.now(UTC)
+    year = currentDate.year
+    month = currentDate.month
+    return redirect(url_for('calendar_year_month', year=year, month=month))
+
+@app.route('/calendar/<year>/<month>')
+def calendar_year_month(year, month):
     daysOfTheWeek = ['Mon.', 'Tue.', 'Wed.', 'Thu.', 'Fri.', 'Sat.', 'Sun.']
 
-    currentDate = datetime.now(UTC)
+    currentMonthInN = int(month)
+    currentDate = datetime(int(year), currentMonthInN, 1)
+    currentMonth = currentDate.strftime('%B')
+    currentYear = currentDate.strftime('%Y')
+    session['date'] = currentDate
+
+    inTodayYearMonth = False
+    todayDate = datetime.now(UTC)
+    if currentDate.month == todayDate.month and currentDate.year == todayDate.year:
+        inTodayYearMonth = True
+    todayDay =  int(todayDate.strftime('%d'))
+    today = todayDate.strftime('%d.%m.%Y')
+
     nOfDaysInMonth = cld.monthrange(currentDate.year, currentDate.month)[1]
-    startDayOfMonth = datetime(currentDate.year, currentDate.month, 1).weekday()
+    startDayOfMonth = currentDate.weekday()
     day = 1
     ndays = []
     for n in range(6):
@@ -88,7 +107,45 @@ def calendar():
                 week.append('')
         ndays.append(week)
 
-    return render_template('calendar.html', ndays=ndays, daysOfTheWeek=daysOfTheWeek)
+    return render_template('calendar.html', ndays=ndays, daysOfTheWeek=daysOfTheWeek,
+                           currentMonth=currentMonth, currentYear=currentYear, today=today,
+                           todayDay=int(todayDay), inTodayYearMonth=inTodayYearMonth, currentMonthInN=currentMonthInN)
+
+@app.route('/calendar/previous_year')
+def previous_year():
+    year = timedelta(days=360)
+    currentDate = session.get('date') or datetime.now(UTC)
+    currentDate = currentDate - year
+    return redirect(url_for('calendar_year_month', year=currentDate.year, month=currentDate.month))
+
+
+@app.route('/calendar/next_year')
+def next_year():
+    year = timedelta(days=360)
+    currentDate = session.get('date') or datetime.now(UTC)
+    currentDate = currentDate + year
+    return redirect(url_for('calendar_year_month', year=currentDate.year, month=currentDate.month))
+
+@app.route('/calendar/previous_month')
+def previous_month():
+    month = timedelta(days=29)
+    currentDate = session.get('date') or datetime.now(UTC)
+    currentDate = currentDate - month
+    return redirect(url_for('calendar_year_month', year=currentDate.year, month=currentDate.month))
+
+@app.route('/calendar/next_month')
+def next_month():
+    month = timedelta(days=31)
+    currentDate = session.get('date') or datetime.now(UTC)
+    currentDate = currentDate + month
+    return redirect(url_for('calendar_year_month', year=currentDate.year, month=currentDate.month))
+
+@app.route('/schedule/<year>/<month>/<day>')
+def schedule(year, month, day):
+    currentDate = datetime(int(year), int(month), int(day))
+    session['date'] = currentDate
+    currentDate = currentDate.strftime('%d.%m.%Y')
+    return render_template('schedule.html', currentDate=currentDate, year=year, month=month)
 
 @app.route('/user/<name>')
 def user(name):

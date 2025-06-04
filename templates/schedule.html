@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Planner{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Schedule</h1>
+</div>
+<div class="current-date">
+    <p>Current date: {{ currentDate }}</p>
+    <div><a href="{{ url_for('calendar_year_month', year=year, month=month) }}">Back to calendar</a></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/schedule.css') }}">
+{% endblock %}

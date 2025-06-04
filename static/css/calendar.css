@@ -1,10 +1,19 @@
+.date-change {
+    padding: 10px 30px;
+}
+
 .calendar {
     display: grid;
     grid-template-columns: 10% 10% 10% 10% 10% 10% 10% 10%;
+    grid-template-rows: 60px 50px 50px 50px 50px 50px 50px;
     padding: 10px;
 }
 
-.calendar > div {
+.calendar a {
+    display: block;
+}
+
+.calendar div {
     padding: 10px;
     font-size: 20px;
     text-align: center;
@@ -26,4 +35,13 @@
     background-color: rebeccapurple;
     color: beige;
     border: 1px solid mediumpurple;
+}
+
+div.today {
+    font-weight: bold;
+    background-color: #462399;
+}
+
+div.empty-day {
+    background-color: #764399;
 }

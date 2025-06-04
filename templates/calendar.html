@@ -6,6 +6,20 @@
 <div class="page-header">
     <h1>Calendar</h1>
 </div>
+<div class="date-change">
+    <p>Today: {{ today }}</p>
+    <div><a href="{{ url_for('calendar') }}">Back to today</a></div>
+</div>
+<div class="date-change">
+    <p>Month: {{ currentMonth }}</p>
+    <div><a href="{{ url_for('previous_month') }}">Previous month</a></div>
+    <div><a href="{{ url_for('next_month') }}">Next month</a></div>
+</div>
+<div class="date-change">
+    <p>Year: {{ currentYear }}</p>
+    <div><a href="{{ url_for('previous_year') }}">Previous year</a></div>
+    <div><a href="{{ url_for('next_year') }}">Next year</a></div>
+</div>
 <div class="calendar">
     <div class="days-of-the-week">*</div>
     {% for day in daysOfTheWeek %}
@@ -14,7 +28,13 @@
     {% for nweek in ndays %}
         <div class="n-of-week">{{ loop.index }}</div>
         {% for nday in nweek %}
-            <div class="n-of-day">{{ nday }}</div>
+            {% if not nday %}
+                <div class="n-of-day empty-day">{{ nday }}</div>
+            {% elif nday == todayDay and inTodayYearMonth %}
+                <a href="{{ url_for('schedule', year=currentYear, month=currentMonthInN, day=nday) }}" ><div class="n-of-day today">{{ nday }}</div></a>
+            {% else %}
+                <a href="{{ url_for('schedule', year=currentYear, month=currentMonthInN, day=nday) }}" ><div class="n-of-day">{{ nday }}</div></a>
+            {% endif %}
         {% endfor %}
     {% endfor %}
 </div>
