@@ -1,0 +1,79 @@
+div.current-month-year>div{
+    display: inline-block;
+}
+
+div.date-change {
+    padding: 10px 30px;
+}
+
+div.calendar-nav {
+    display: inline-block;
+    padding: 5px;
+    border: 2px solid darkblue;
+    border-radius: 5px;
+    width: 150px;
+    text-align: center;
+    color: dimgray;
+    background-color: lightcyan;
+}
+
+div.calendar {
+    display: grid;
+    grid-template-columns: 10% 10% 10% 10% 10% 10% 10% 10%;
+    grid-template-rows: 60px 50px 50px 50px 50px 50px 50px;
+    padding: 10px;
+}
+
+div.calendar a {
+    display: block;
+}
+
+div.calendar div {
+    padding: 10px;
+    font-size: 20px;
+    text-align: center;
+}
+
+div.days-of-the-week:nth-child(1) {
+    border-top-left-radius: 10px;
+}
+
+div.days-of-the-week:nth-child(8) {
+    border-top-right-radius: 10px;
+}
+
+div.n-of-week:not(:has(~ .n-of-week)) {
+    border-bottom-left-radius: 10px;
+}
+
+div.calendar>div:last-child,
+div.calendar>a:last-child>div {
+    border-bottom-right-radius: 10px;
+}
+
+div.days-of-the-week {
+    background-color: saddlebrown;
+    color: lightgrey;
+    border: 1px solid sandybrown;
+}
+
+div.n-of-week {
+    background-color: darkcyan;
+    color: lightsteelblue;
+    border: 1px solid gray;
+}
+
+div.n-of-day {
+    background-color: rebeccapurple;
+    color: beige;
+    border: 1px solid mediumpurple;
+}
+
+div.today {
+    font-weight: bold;
+    background-color: #462399;
+}
+
+div.empty-day {
+    background-color: #764399;
+}

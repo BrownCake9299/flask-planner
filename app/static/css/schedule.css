@@ -1,0 +1,14 @@
+.current-date {
+    padding: 10px 30px;
+}
+
+div.schedule-nav {
+    display: inline-block;
+    padding: 5px;
+    border: 2px solid darkblue;
+    border-radius: 5px;
+    width: 150px;
+    text-align: center;
+    color: dimgray;
+    background-color: lightcyan;
+}

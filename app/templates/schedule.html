@@ -7,9 +7,9 @@
     <h1>Schedule</h1>
 </div>
 <div class="current-date">
-    <p>Current date: {{ currentDate }}</p>
-    <div><a href="{{ url_for('calendar_year_month', year=year, month=month) }}">Back to calendar</a></div>
+    <p>Date: {{ currentDate }}</p>
 </div>
+<a href="{{ url_for('.calendar_year_month', year=year, month=month) }}"><div class="schedule-nav">Back to calendar</div></a>
 {% endblock %}
 
 {% block scripts %}
