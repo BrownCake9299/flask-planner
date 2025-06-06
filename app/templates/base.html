@@ -23,7 +23,14 @@
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
                 <li><a href="/">Home</a></li>
-                <li><a href="/calendar">Calendar</a></li>
+                <li><a href="/plan">Calendar</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                {%if current_user.is_authenticated %}
+                <li><a href="{{ url_for('auth.logout') }}">Log Out</a></li>
+                {% else %}
+                <li><a href="{{ url_for('auth.login') }}">Log In</a></li>
+                {% endif %}
             </ul>
         </div>
     </div>

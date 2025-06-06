@@ -1,2 +1,4 @@
 venv_fp/
-data.sqlite
+data-dev.sqlite
+testing.py
+app/plan/keydict.py

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Planner{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/schedule.css') }}">
+{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Schedule</h1>
+</div>
+<div class="current-info">
+    <p>Date: {{ currentDate }}</p>
+</div>
+<div class="current-info">
+    <p>Location: Berlin</p>
+    {% if isToday %}
+    <p>Current Temperature: {{ maxTemp }} &#176;C</p>
+    {% else %}
+        <p>Max Temperature: {{ maxTemp }} &#176;C</p>
+        <p>Min Temperature: {{ minTemp }} &#176;C</p>
+    {% endif %}
+</div>
+<a href="{{ url_for('.calendar_year_month', year=year, month=month) }}">
+    <div class="schedule-nav">Back to calendar</div></a>
+{% endblock %}
