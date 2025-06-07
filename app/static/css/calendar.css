@@ -63,17 +63,28 @@ div.n-of-week {
     border: 1px solid gray;
 }
 
+div.empty-day {
+    background-color: #764399;
+    border: 1px solid gray;
+}
+
 div.n-of-day {
     background-color: rebeccapurple;
     color: beige;
     border: 1px solid mediumpurple;
 }
 
+div.interactable {
+    opacity: 1;
+    transition: opacity 500ms, border-color 500ms;
+}
+
+div.interactable:hover {
+    opacity: 0.8;
+    border-color: deepskyblue;
+}
+
 div.today {
     font-weight: bold;
     background-color: #462399;
-}
-
-div.empty-day {
-    background-color: #764399;
 }

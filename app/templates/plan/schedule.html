@@ -13,16 +13,37 @@
 </div>
 <div class="current-info">
     <p>Date: {{ currentDate }}</p>
+    <a href="{{ url_for('.previous_day') }}"><div class="schedule-nav interactable">Previous day</div></a>
+    <a href="{{ url_for('.next_day') }}"><div class="schedule-nav interactable">Next day</div></a>
+</div>
+<div class="side-info">
+    <p>Today's date: {{todayDate}}</p>
+    <a href="{{ url_for('.today') }}"><div class="schedule-nav interactable">Back to today</div></a>
 </div>
 <div class="current-info">
     <p>Location: Berlin</p>
     {% if isToday %}
-    <p>Current Temperature: {{ maxTemp }} &#176;C</p>
-    {% else %}
+        <p>Current Temperature: {{ maxTemp }} &#176;C</p>
+    {% elif tempAvailable %}
         <p>Max Temperature: {{ maxTemp }} &#176;C</p>
         <p>Min Temperature: {{ minTemp }} &#176;C</p>
+    {% else %}
+        <p class="lack-data">Temperature data not available.</p>
     {% endif %}
+    <a href="{{ url_for('.calendar_year_month', year=year, month=month) }}">
+    <div class="schedule-nav interactable">Back to calendar</div></a>
 </div>
-<a href="{{ url_for('.calendar_year_month', year=year, month=month) }}">
-    <div class="schedule-nav">Back to calendar</div></a>
+<div class="schedule-body">
+    {% for i in range(24) %}
+        <div>
+            {% if sleepSlots[i] %}
+                <div class="slot left-slot sleep-slot">{{ timeSlots[i] }}00</div>
+                <div class="slot right-slot sleep-slot">Sleep</div>
+            {% else %}
+                <div class="slot left-slot">{{ timeSlots[i] }}00</div>
+                <div class="slot right-slot">Event</div>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
 {% endblock %}

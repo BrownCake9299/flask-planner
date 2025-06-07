@@ -1,5 +1,14 @@
-.current-info {
+div.current-info {
     padding: 10px 30px;
+}
+
+div.side-info {
+    position: absolute;
+    right: 20%;
+}
+
+p.lack-data {
+    color: slategray;
 }
 
 div.schedule-nav {
@@ -11,4 +20,46 @@ div.schedule-nav {
     text-align: center;
     color: dimgray;
     background-color: lightcyan;
+}
+
+div.interactable {
+    opacity: 1;
+    transition: opacity 500ms, border-color 500ms;
+}
+
+div.interactable:hover {
+    opacity: 0.8;
+    border-color: deepskyblue;
+}
+
+div.schedule-body {
+    margin: 10px;
+}
+
+div.slot {
+    display: inline-block;
+    border-radius: 10px;
+    padding: 10px;
+    margin: 2px;
+}
+
+div.left-slot {
+    border: 2px solid indianred;
+    width: 20%;
+    text-align: center;
+    color: lightgray;
+    background-color: darkblue;
+}
+
+div.right-slot {
+    border: 2px solid darkslategray;
+    width: 70%;
+    text-align: left;
+    color: darkslategray;
+    background-color: #c0d4ee;
+}
+
+div.sleep-slot {
+    background-color: #707070;
+    color: #cc9797;
 }

@@ -9,18 +9,18 @@
 <div class="current-month-year">
     <div class="date-change">
         <p>Month: {{ currentMonth }} {% if inTodayYearMonth %}(today){% endif %}</p>
-        <div class="calendar-nav"><a href="{{ url_for('.previous_month') }}">Previous month</a></div>
-        <div class="calendar-nav"><a href="{{ url_for('.next_month') }}">Next month</a></div>
+        <a href="{{ url_for('.previous_month') }}"><div class="calendar-nav interactable">Previous month</div></a>
+        <a href="{{ url_for('.next_month') }}"><div class="calendar-nav interactable">Next month</div></a>
     </div>
     <div class="date-change">
         <p>Year: {{ currentYear }} {% if inTodayYearMonth %}(today){% endif %}</p>
-        <div class="calendar-nav"><a href="{{ url_for('.previous_year') }}">Previous year</a></div>
-        <div class="calendar-nav"><a href="{{ url_for('.next_year') }}">Next year</a></div>
+        <a href="{{ url_for('.previous_year') }}"><div class="calendar-nav interactable">Previous year</div></a>
+        <a href="{{ url_for('.next_year') }}"><div class="calendar-nav interactable">Next year</div></a>
     </div>
 </div>
 <div class="date-change">
     <p>Today: {{ today }}</p>
-    <div class="calendar-nav"><a href="{{ url_for('.calendar') }}">Back to today</a></div>
+    <a href="{{ url_for('.calendar') }}"><div class="calendar-nav interactable">Back to today</div></a>
 </div>
 <div class="calendar">
     <div class="days-of-the-week">*</div>
@@ -31,14 +31,14 @@
         <div class="n-of-week">{{ loop.index }}</div>
         {% for nday in nweek %}
             {% if not nday %}
-                <div class="n-of-day empty-day">{{ nday }}</div>
+                <div class="empty-day">{{ nday }}</div>
             {% elif nday == todayDay and inTodayYearMonth %}
                 <a href="{{ url_for('.schedule', year=currentYear, month=currentMonthInN, day=nday) }}" >
-                    <div class="n-of-day today">{{ nday }}</div>
+                    <div class="n-of-day today interactable">{{ nday }}</div>
                 </a>
             {% else %}
                 <a href="{{ url_for('.schedule', year=currentYear, month=currentMonthInN, day=nday) }}" >
-                    <div class="n-of-day">{{ nday }}</div>
+                    <div class="n-of-day interactable">{{ nday }}</div>
                 </a>
             {% endif %}
         {% endfor %}
