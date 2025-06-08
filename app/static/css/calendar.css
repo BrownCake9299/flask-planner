@@ -76,12 +76,13 @@ div.n-of-day {
 
 div.interactable {
     opacity: 1;
-    transition: opacity 500ms, border-color 500ms;
+    transition: opacity 500ms, border-color 500ms, color 500ms;
 }
 
 div.interactable:hover {
     opacity: 0.8;
-    border-color: deepskyblue;
+    border-color: mediumvioletred;
+    color: orangered;
 }
 
 div.today {

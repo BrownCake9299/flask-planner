@@ -9,9 +9,6 @@ class Role(db.Model):
     name = db.Column(db.String(64), unique=True)
     users = db.relationship('User', backref='role', lazy='dynamic')
 
-    def __repr__(self):
-        return '<Role {}>'.format(self.name)
-
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
@@ -23,8 +20,9 @@ class User(UserMixin, db.Model):
     about_me = db.Column(db.Text())
     user_since = db.Column(db.DateTime(), default=datetime.now(UTC))
     last_seen = db.Column(db.DateTime(), default=datetime.now(UTC))
-    #sleepTime = db.Column(db.Integer(24))
-    #wakeTime = db.Column(db.Integer(24))
+    sleep_time = db.Column(db.Integer, default=22)
+    wake_time = db.Column(db.Integer, default=7)
+    events = db.relationship('Event', backref='user', lazy='dynamic')
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -44,6 +42,15 @@ class User(UserMixin, db.Model):
         self.last_seen = datetime.now(UTC)
         db.session.add(self)
         db.session.commit()
+
+class Event(db.Model):
+    __tablename__ = 'events'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    name = db.Column(db.String(64))
+    date = db.Column(db.Date(), default=datetime.now(UTC).date())
+    time = db.Column(db.Integer, default=0)
+    description = db.Column(db.Text())
 
 @login_manager.user_loader
 def load_user(user_id):

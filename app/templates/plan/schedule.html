@@ -41,7 +41,9 @@
                 <div class="slot right-slot sleep-slot">Sleep</div>
             {% else %}
                 <div class="slot left-slot">{{ timeSlots[i] }}00</div>
-                <div class="slot right-slot">Event</div>
+                <a href="{{ url_for('.event', year=year, month=month, day=day, time=i) }}">
+                    <div class="slot right-slot interactable">{{ eventSlots[i] }}</div>
+                </a>
             {% endif %}
         </div>
     {% endfor %}

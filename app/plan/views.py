@@ -1,11 +1,14 @@
 from flask import render_template, session, redirect, url_for, flash
 from . import plan
-from datetime import datetime, UTC, timedelta
+from datetime import datetime, UTC, timedelta, date
 import calendar as cld
 import requests
 from pytz import timezone
 from . import keydict
-from flask_login import login_required
+from flask_login import login_required, current_user
+from .forms import EventForm
+from ..models import Event
+from .. import db
 
 #To implement holidays:
 #https://date.nager.at/Api
@@ -24,16 +27,30 @@ def calendar():
 
 @plan.route('/calendar/<year>/<month>')
 def calendar_year_month(year, month):
+    try:
+        currentMonthInN = int(month)
+        currentYearInN = int(year)
+    except:
+        flash('Month and year must be integers!')
+        return redirect(url_for('.calendar'))
+
     daysOfTheWeek = ['Mon.', 'Tue.', 'Wed.', 'Thu.', 'Fri.', 'Sat.', 'Sun.']
 
-    currentMonthInN = int(month)
+    todayDate = datetime.now(UTC)
+
+    if currentMonthInN < 1 or currentMonthInN > 12 :
+        flash('There are only 12 months in a year')
+        return redirect(url_for('.calendar'))
+    if currentYearInN < 2000 or currentYearInN > 3000:
+        flash('Planning for before the year 2000 and after the year 3000 is not possible for now')
+        return redirect(url_for('.calendar'))
+
     currentDate = datetime(int(year), currentMonthInN, 1)
     currentMonth = currentDate.strftime('%B')
     currentYear = currentDate.strftime('%Y')
     session['date'] = currentDate
 
     inTodayYearMonth = False
-    todayDate = datetime.now(UTC)
     if currentDate.month == todayDate.month and currentDate.year == todayDate.year:
         inTodayYearMonth = True
     todayDay =  int(todayDate.strftime('%d'))
@@ -70,6 +87,9 @@ def previous_year():
     year = timedelta(days=360)
     currentDate = session.get('date') or datetime.now(UTC)
     currentDate = currentDate - year
+    if (currentDate.year < 2000):
+        flash('Planning for before the year 2000 is not possible for now')
+        currentDate = session.get('date') or datetime.now(UTC)
     return redirect(url_for('.calendar_year_month', year=currentDate.year, month=currentDate.month))
 
 
@@ -78,6 +98,9 @@ def next_year():
     year = timedelta(days=360)
     currentDate = session.get('date') or datetime.now(UTC)
     currentDate = currentDate + year
+    if (currentDate.year > 3000):
+        flash('Planning for after the year 3000 is not possible for now')
+        currentDate = session.get('date') or datetime.now(UTC)
     return redirect(url_for('.calendar_year_month', year=currentDate.year, month=currentDate.month))
 
 @plan.route('/calendar/previous_month')
@@ -85,6 +108,9 @@ def previous_month():
     month = timedelta(days=29)
     currentDate = session.get('date') or datetime.now(UTC)
     currentDate = currentDate - month
+    if (currentDate.year < 2000):
+        flash('Planning for after the year 3000 is not possible for now')
+        currentDate = session.get('date') or datetime.now(UTC)
     return redirect(url_for('.calendar_year_month', year=currentDate.year, month=currentDate.month))
 
 @plan.route('/calendar/next_month')
@@ -92,14 +118,30 @@ def next_month():
     month = timedelta(days=31)
     currentDate = session.get('date') or datetime.now(UTC)
     currentDate = currentDate + month
+    if (currentDate.year > 3000):
+        flash('Planning for after the year 3000 is not possible for now')
+        currentDate = session.get('date') or datetime.now(UTC)
     return redirect(url_for('.calendar_year_month', year=currentDate.year, month=currentDate.month))
 
 @plan.route('/schedule/<year>/<month>/<day>')
 def schedule(year, month, day):
-    intYear = int(year)
-    intMonth = int(month)
-    intDay = int(day)
-    session['date'] = datetime(intYear, intMonth, intDay)
+    try:
+        intYear = int(year)
+        intMonth = int(month)
+        intDay = int(day)
+    except:
+        flash('Year, month and day must be integers!')
+        return redirect(url_for('.today'))
+
+    if intYear < 2000 or intYear > 3000:
+        flash('Scheduling for before the year 2000 and after the year 3000 is not possible for now')
+        return redirect(url_for('.today'))
+
+    try:
+        session['date'] = datetime(intYear, intMonth, intDay)
+    except:
+        flash('Invalid date!')
+        return redirect(url_for('.today'))
 
     #Temperature from API
     maxTemp = ''
@@ -136,28 +178,50 @@ def schedule(year, month, day):
 
     #Schedule body
     timeNumbers = range(24)
-    sleepTime = 22
-    wakeTime = 7
+    sleepTime = current_user.sleep_time or 22
+    wakeTime = current_user.wake_time or 7
     timeSlots = []
     sleepSlots = []
+    eventSlots= []
     for timeNumber in timeNumbers:
         timeSlots.append(f"{timeNumber:02d}")
-        if timeNumber < wakeTime or timeNumber >= sleepTime:
-            sleepSlots.append(True)
+
+        #sleep
+        if sleepTime > wakeTime:
+            if timeNumber < wakeTime or timeNumber >= sleepTime:
+                sleepSlots.append(True)
+            else:
+                sleepSlots.append(False)
+        elif sleepTime < wakeTime:
+            if timeNumber < wakeTime and timeNumber >= sleepTime:
+                sleepSlots.append(True)
+            else:
+                sleepSlots.append(False)
         else:
             sleepSlots.append(False)
+
+        #event
+        date = datetime(intYear, intMonth, intDay).date()
+        event = Event.query.filter_by(user=current_user, date=date, time=timeNumber).first()
+        if event:
+            eventSlots.append(event.name)
+        else:
+            eventSlots.append('no event')
 
     currentDate = currentDate.strftime('%d.%m.%Y')
     todayDate = todayDate.strftime('%d.%m.%Y')
     return render_template('plan/schedule.html', currentDate=currentDate,
-                           todayDate=todayDate, year=year, month=month,
+                           todayDate=todayDate, year=year, month=month, day=day,
                            maxTemp=maxTemp, minTemp=minTemp, isToday=isToday, tempAvailable=tempAvailable,
-                           timeSlots=timeSlots, sleepSlots=sleepSlots)
+                           timeSlots=timeSlots, sleepSlots=sleepSlots, eventSlots=eventSlots)
 
 @plan.route('/previous_day')
 def previous_day():
     currentDate = session.get('date') or datetime.now(UTC)
     currentDate = currentDate - timedelta(days=1)
+    if currentDate.year < 2000:
+        flash('Scheduling for before the year 2000 is not possible for now')
+        currentDate = session.get('date') or datetime.now(UTC)
     year = currentDate.strftime('%Y')
     month = currentDate.strftime('%m')
     day = currentDate.strftime('%d')
@@ -168,6 +232,9 @@ def previous_day():
 def next_day():
     currentDate = session.get('date') or datetime.now(UTC)
     currentDate = currentDate + timedelta(days=1)
+    if currentDate.year> 3000:
+        flash('Scheduling for after the year 3000 is not possible for now')
+        currentDate = session.get('date') or datetime.now(UTC)
     year = currentDate.strftime('%Y')
     month = currentDate.strftime('%m')
     day = currentDate.strftime('%d')
@@ -182,3 +249,65 @@ def today():
     day = currentDate.strftime('%d')
 
     return redirect(url_for('.schedule', year=year, month=month, day=day))
+
+@plan.route('/event/<year>/<month>/<day>/<time>')
+def event(year, month, day, time):
+    intYear = int(year)
+    intMonth = int(month)
+    intDay = int(day)
+    intTime = int(time)
+    date = datetime(intYear, intMonth, intDay).date()
+    name = '-'
+    description = '-'
+    event = Event.query.filter_by(user=current_user, date=date, time=intTime).first()
+    if event:
+        name = event.name
+        description = event.description or '-'
+
+    return render_template('plan/event.html', name=name, description=description,
+                           time=time, year=year, month=month, day=day)
+
+@plan.route('/edit-event/<year>/<month>/<day>/<time>', methods=['GET', 'POST'])
+def edit_event(year, month, day, time):
+    form = EventForm()
+    intYear = int(year)
+    intMonth = int(month)
+    intDay = int(day)
+    intTime = int(time)
+    date = datetime(intYear, intMonth, intDay).date()
+
+    event = Event.query.filter_by(user=current_user, date=date, time=intTime).first()
+    if not event:
+        event = Event(user=current_user, date=date, time=intTime)
+
+    if form.validate_on_submit():
+        event.name = form.name.data
+        event.description = form.description.data
+        db.session.add(event)
+        db.session.commit()
+        flash('Event saved.')
+        return redirect(url_for('.event', year=year, month=month, day=day, time=time))
+    form.name.data = event.name
+    form.description.data = event.description
+    displayDate = date.strftime('%d.%m.%Y')
+    displayTime = f"{intTime:02d}"
+
+    return render_template('plan/edit_event.html', form=form,
+                           year=year, month=month, day=day, time=time,
+                           displayDate=displayDate, displayTime=displayTime )
+
+@plan.route('/delete-event/<year>/<month>/<day>/<time>')
+def delete_event(year, month, day, time):
+    intYear = int(year)
+    intMonth = int(month)
+    intDay = int(day)
+    intTime = int(time)
+    date = datetime(intYear, intMonth, intDay).date()
+    event = Event.query.filter_by(user=current_user, date=date, time=intTime).first()
+    if not event:
+        flash('No event')
+        return redirect(url_for('.edit_event', year=year, month=month, day=day, time=time))
+    db.session.delete(event)
+    db.session.commit()
+
+    return redirect(url_for('.event', year=year, month=month, day=day, time=time))

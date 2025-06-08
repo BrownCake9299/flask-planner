@@ -24,12 +24,13 @@ div.schedule-nav {
 
 div.interactable {
     opacity: 1;
-    transition: opacity 500ms, border-color 500ms;
+    transition: opacity 500ms, border-color 500ms, color 500ms;
 }
 
 div.interactable:hover {
     opacity: 0.8;
-    border-color: deepskyblue;
+    border-color: mediumvioletred;
+    color: orangered;
 }
 
 div.schedule-body {
@@ -52,7 +53,7 @@ div.left-slot {
 }
 
 div.right-slot {
-    border: 2px solid darkslategray;
+    border: 3px solid darkslategray;
     width: 70%;
     text-align: left;
     color: darkslategray;
