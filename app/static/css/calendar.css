@@ -6,17 +6,6 @@ div.date-change {
     padding: 10px 30px;
 }
 
-div.calendar-nav {
-    display: inline-block;
-    padding: 5px;
-    border: 2px solid darkblue;
-    border-radius: 5px;
-    width: 150px;
-    text-align: center;
-    color: dimgray;
-    background-color: lightcyan;
-}
-
 div.calendar {
     display: grid;
     grid-template-columns: 10% 10% 10% 10% 10% 10% 10% 10%;
@@ -72,17 +61,6 @@ div.n-of-day {
     background-color: rebeccapurple;
     color: beige;
     border: 1px solid mediumpurple;
-}
-
-div.interactable {
-    opacity: 1;
-    transition: opacity 500ms, border-color 500ms, color 500ms;
-}
-
-div.interactable:hover {
-    opacity: 0.8;
-    border-color: mediumvioletred;
-    color: orangered;
 }
 
 div.today {

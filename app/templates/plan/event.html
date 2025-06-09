@@ -7,13 +7,16 @@
     <h1>Event</h1>
 </div>
 <div>
+    <p>Date: {{ displayDate }}</p>
+    <p>Time: {{ displayTime }}00</p>
     <p>Title: {{ name }}</p>
     <p>Description: {{ description }}</p>
 </div>
-<a class="btn btn-default" href="{{ url_for('.edit_event', year=year, month=month, day=day, time=time) }}">
-    Edit Event
-</a>
-<a class="btn btn-default" href="{{ url_for('.schedule', year=year, month=month, day=day) }}">
+<br>
+<a class="event-nav interactable" href="{{ url_for('.schedule', year=year, month=month, day=day) }}"><div class="event-nav interactable">
     Return
-</a>
+</div></a>
+<a class="event-nav interactable" href="{{ url_for('.edit_event', year=year, month=month, day=day, time=time) }}"><div class="event-nav interactable">
+    Edit Event
+</div></a>
 {% endblock %}

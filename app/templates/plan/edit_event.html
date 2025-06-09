@@ -12,10 +12,11 @@
     <p>time: {{ displayTime }}00</p>
 </div>
 {{ wtf.quick_form(form) }}
-<a class="btn btn-default" href="{{ url_for('.delete_event', year=year, month=month, day=day, time=time) }}">
-    Delete event
-</a>
-<a class="btn btn-default" href="{{ url_for('.event', year=year, month=month, day=day, time=time) }}">
+<br>
+<a href="{{ url_for('.event', year=year, month=month, day=day, time=time) }}"><div class="event-nav interactable">
     Return
-</a>
+</div></a>
+<a href="{{ url_for('.delete_event', year=year, month=month, day=day, time=time) }}"><div class="event-nav interactable delete">
+    Delete event
+</div></a>
 {% endblock %}

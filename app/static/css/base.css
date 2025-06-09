@@ -5,3 +5,50 @@ div.navbar {
 body {
     background: #e0ffe0 !important;
 }
+
+div.interactable {
+    opacity: 1;
+    transition: opacity 200ms, border-color 200ms, color 200ms;
+}
+
+div.interactable:hover {
+    opacity: 0.8;
+    border-color: mediumvioletred;
+    color: orangered;
+}
+
+div.schedule-nav,
+div.calendar-nav,
+div.event-nav {
+    display: inline-block;
+    padding: 5px;
+    border: 2px solid darkblue;
+    border-radius: 5px;
+    width: 150px;
+    text-align: center;
+    color: dimgray;
+    background-color: lightcyan;
+}
+
+div.delete {
+    background-color: lightpink !important;
+}
+
+div.delete:hover {
+    color: red !important;
+}
+
+.btn {
+    background-color: powderblue;
+}
+
+.btn {
+    opacity: 1;
+    transition: opacity 200ms, border-color 200ms, color 200ms;
+}
+
+.btn:hover {
+    opacity: 0.8;
+    border-color: darkslategray;
+    color: darkslategray;
+}

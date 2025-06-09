@@ -125,23 +125,13 @@ def next_month():
 
 @plan.route('/schedule/<year>/<month>/<day>')
 def schedule(year, month, day):
-    try:
-        intYear = int(year)
-        intMonth = int(month)
-        intDay = int(day)
-    except:
-        flash('Year, month and day must be integers!')
-        return redirect(url_for('.today'))
 
-    if intYear < 2000 or intYear > 3000:
-        flash('Scheduling for before the year 2000 and after the year 3000 is not possible for now')
+    if not check_date(year, month, day):
+        flash('Don\'t manipulate URL')
         return redirect(url_for('.today'))
-
-    try:
-        session['date'] = datetime(intYear, intMonth, intDay)
-    except:
-        flash('Invalid date!')
-        return redirect(url_for('.today'))
+    intYear = int(year)
+    intMonth = int(month)
+    intDay = int(day)
 
     #Temperature from API
     maxTemp = ''
@@ -252,11 +242,19 @@ def today():
 
 @plan.route('/event/<year>/<month>/<day>/<time>')
 def event(year, month, day, time):
+    if not check_date(year, month, day):
+        flash('Don\'t manipulate URL')
+        return redirect(url_for('.today'))
     intYear = int(year)
     intMonth = int(month)
     intDay = int(day)
+    if not check_time(time):
+        flash('Don\'t manipulate URL')
+        return redirect(url_for('.schedule', year=year, month=month, day=day))
     intTime = int(time)
     date = datetime(intYear, intMonth, intDay).date()
+    displayDate = date.strftime('%d.%m.%Y')
+    displayTime = f"{intTime:02d}"
     name = '-'
     description = '-'
     event = Event.query.filter_by(user=current_user, date=date, time=intTime).first()
@@ -265,16 +263,23 @@ def event(year, month, day, time):
         description = event.description or '-'
 
     return render_template('plan/event.html', name=name, description=description,
-                           time=time, year=year, month=month, day=day)
+                           time=time, year=year, month=month, day=day,
+                           displayDate=displayDate, displayTime=displayTime)
 
 @plan.route('/edit-event/<year>/<month>/<day>/<time>', methods=['GET', 'POST'])
 def edit_event(year, month, day, time):
     form = EventForm()
+    if not check_date(year, month, day):
+        flash('Don\'t manipulate URL')
+        return redirect(url_for('.today'))
     intYear = int(year)
     intMonth = int(month)
     intDay = int(day)
-    intTime = int(time)
     date = datetime(intYear, intMonth, intDay).date()
+    if not check_time(time):
+        flash('Don\'t manipulate URL')
+        return redirect(url_for('.schedule', year=year, month=month, day=day))
+    intTime = int(time)
 
     event = Event.query.filter_by(user=current_user, date=date, time=intTime).first()
     if not event:
@@ -298,9 +303,15 @@ def edit_event(year, month, day, time):
 
 @plan.route('/delete-event/<year>/<month>/<day>/<time>')
 def delete_event(year, month, day, time):
+    if not check_date(year, month, day):
+        flash('Don\'t manipulate URL')
+        return redirect(url_for('.today'))
     intYear = int(year)
     intMonth = int(month)
     intDay = int(day)
+    if not check_time(time):
+        flash('Don\'t manipulate URL')
+        return redirect(url_for('.schedule', year=year, month=month, day=day))
     intTime = int(time)
     date = datetime(intYear, intMonth, intDay).date()
     event = Event.query.filter_by(user=current_user, date=date, time=intTime).first()
@@ -311,3 +322,37 @@ def delete_event(year, month, day, time):
     db.session.commit()
 
     return redirect(url_for('.event', year=year, month=month, day=day, time=time))
+
+def check_date(year, month, day):
+    try:
+        intYear = int(year)
+        intMonth = int(month)
+        intDay = int(day)
+    except:
+        flash('Year, month and day must be integers!')
+        return False
+
+    if intYear < 2000 or intYear > 3000:
+        flash('Scheduling for before the year 2000 and after the year 3000 is not possible for now')
+        return False
+
+    try:
+        session['date'] = datetime(intYear, intMonth, intDay)
+    except:
+        flash('Invalid date!')
+        return False
+
+    return True
+
+def check_time(time):
+    try:
+        intTime = int(time)
+    except:
+        flash('Time must be an integer!')
+        return False
+
+    if intTime > 23 or intTime < 0:
+        flash('Time out of bound')
+        return False
+
+    return True

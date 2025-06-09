@@ -11,28 +11,6 @@ p.lack-data {
     color: slategray;
 }
 
-div.schedule-nav {
-    display: inline-block;
-    padding: 5px;
-    border: 2px solid darkblue;
-    border-radius: 5px;
-    width: 150px;
-    text-align: center;
-    color: dimgray;
-    background-color: lightcyan;
-}
-
-div.interactable {
-    opacity: 1;
-    transition: opacity 500ms, border-color 500ms, color 500ms;
-}
-
-div.interactable:hover {
-    opacity: 0.8;
-    border-color: mediumvioletred;
-    color: orangered;
-}
-
 div.schedule-body {
     margin: 10px;
 }
