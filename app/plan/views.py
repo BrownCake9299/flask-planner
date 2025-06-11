@@ -10,9 +10,6 @@ from .forms import EventForm
 from ..models import Event
 from .. import db
 
-#To implement holidays:
-#https://date.nager.at/Api
-
 @plan.before_request
 @login_required
 def before_request():
@@ -27,60 +24,32 @@ def calendar():
 
 @plan.route('/calendar/<year>/<month>')
 def calendar_year_month(year, month):
-    try:
-        currentMonthInN = int(month)
-        currentYearInN = int(year)
-    except:
-        flash('Month and year must be integers!')
+    if not check_date(year, month, '1'):
+        flash('Don\'t manipulate URL')
         return redirect(url_for('.calendar'))
 
-    daysOfTheWeek = ['Mon.', 'Tue.', 'Wed.', 'Thu.', 'Fri.', 'Sat.', 'Sun.']
+    intYear = int(year)
+    intMonth = int(month)
+    intDay = 1
 
-    todayDate = datetime.now(UTC)
-
-    if currentMonthInN < 1 or currentMonthInN > 12 :
-        flash('There are only 12 months in a year')
-        return redirect(url_for('.calendar'))
-    if currentYearInN < 2000 or currentYearInN > 3000:
-        flash('Planning for before the year 2000 and after the year 3000 is not possible for now')
-        return redirect(url_for('.calendar'))
-
-    currentDate = datetime(int(year), currentMonthInN, 1)
+    currentDate = datetime(intYear, intMonth, intDay)
     currentMonth = currentDate.strftime('%B')
     currentYear = currentDate.strftime('%Y')
     session['date'] = currentDate
+    daysOfTheWeek = ['Mon.', 'Tue.', 'Wed.', 'Thu.', 'Fri.', 'Sat.', 'Sun.']
 
     inTodayYearMonth = False
+    todayDate = datetime.now(UTC)
     if currentDate.month == todayDate.month and currentDate.year == todayDate.year:
         inTodayYearMonth = True
     todayDay =  int(todayDate.strftime('%d'))
     today = todayDate.strftime('%d.%m.%Y')
 
-    nOfDaysInMonth = cld.monthrange(currentDate.year, currentDate.month)[1]
-    startDayOfMonth = currentDate.weekday()
-    day = 1
-    ndays = []
-    while True:
-        week = []
-        lastWeek = False
-        for m in range(7):
-            if startDayOfMonth > 0:
-                week.append('')
-                startDayOfMonth -= 1
-            elif day <= nOfDaysInMonth:
-                if day == nOfDaysInMonth:
-                    lastWeek = True
-                week.append(day)
-                day += 1
-            else:
-                week.append('')
-        ndays.append(week)
-        if lastWeek:
-            break
+    ndays = create_calendar(currentDate)
 
     return render_template('plan/calendar.html', ndays=ndays, daysOfTheWeek=daysOfTheWeek,
                            currentMonth=currentMonth, currentYear=currentYear, today=today,
-                           todayDay=int(todayDay), inTodayYearMonth=inTodayYearMonth, currentMonthInN=currentMonthInN)
+                           todayDay=int(todayDay), inTodayYearMonth=inTodayYearMonth, intMonth=intMonth)
 
 @plan.route('/calendar/previous_year')
 def previous_year():
@@ -134,72 +103,41 @@ def schedule(year, month, day):
     intDay = int(day)
 
     #Temperature from API
-    maxTemp = ''
-    minTemp = ''
+    maxTemp, minTemp = '',''
     currentDate = datetime(intYear, intMonth, intDay, tzinfo=timezone('UTC')).date()
     todayDate = datetime.now(UTC).date()
     deltaDate = int((currentDate - todayDate).days)
-    key = keydict.WEATHER_API_KEY
-    location = 'Berlin'
     isToday = False
     tempAvailable = False
 
+    key = keydict.WEATHER_API_KEY
+    location = 'Berlin'
+
     if deltaDate == 0:
-        url = 'http://api.weatherapi.com/v1/current.json?key='+key+'&q='+location+'&aqi=no'
-        response = requests.get(url)
-        list_of_data = response.json()
-        maxTemp = str(list_of_data['current']['temp_c'])
-        minTemp = str(list_of_data['current']['temp_c'])
-        isToday = True
+        maxTemp, minTemp = get_current_temperature(key, location)
+        if maxTemp:
+            isToday = True
     elif deltaDate <= 3 and deltaDate > 0:
-        url = 'http://api.weatherapi.com/v1/forecast.json?key='+key+'&q='+location+'&days=3&aqi=no&alerts=no'
-        response = requests.get(url)
-        list_of_data = response.json()
-        maxTemp = str(list_of_data['forecast']['forecastday'][deltaDate - 1]['day']['maxtemp_c'])
-        minTemp = str(list_of_data['forecast']['forecastday'][deltaDate - 1]['day']['mintemp_c'])
-        tempAvailable = True
+        maxTemp, minTemp = get_past_temperature(key, location, deltaDate)
+        if maxTemp:
+            tempAvailable = True
     elif deltaDate >= -7 and deltaDate < 0:
-        url = 'http://api.weatherapi.com/v1/history.json?key='+key+'&q='+location+'&dt='+year+'-'+month+'-'+day
-        response = requests.get(url)
-        list_of_data = response.json()
-        maxTemp = str(list_of_data['forecast']['forecastday'][0]['day']['maxtemp_c'])
-        minTemp = str(list_of_data['forecast']['forecastday'][0]['day']['mintemp_c'])
-        tempAvailable = True
+        maxTemp, minTemp = get_future_temperature(key, location, year, month, day)
+        if maxTemp:
+            tempAvailable = True
 
     #Schedule body
-    timeNumbers = range(24)
-    sleepTime = current_user.sleep_time or 22
-    wakeTime = current_user.wake_time or 7
-    timeSlots = []
-    sleepSlots = []
-    eventSlots= []
-    for timeNumber in timeNumbers:
-        timeSlots.append(f"{timeNumber:02d}")
-
-        #sleep
-        if sleepTime > wakeTime:
-            if timeNumber < wakeTime or timeNumber >= sleepTime:
-                sleepSlots.append(True)
-            else:
-                sleepSlots.append(False)
-        elif sleepTime < wakeTime:
-            if timeNumber < wakeTime and timeNumber >= sleepTime:
-                sleepSlots.append(True)
-            else:
-                sleepSlots.append(False)
-        else:
-            sleepSlots.append(False)
-
-        #event
-        date = datetime(intYear, intMonth, intDay).date()
-        event = Event.query.filter_by(user=current_user, date=date, time=timeNumber).first()
-        if event:
-            eventSlots.append(event.name)
-        else:
-            eventSlots.append('no event')
+    timeSlots = get_time_slots()
+    sleepTime = current_user.sleep_time
+    wakeTime = current_user.wake_time
+    if sleepTime is None or wakeTime is None:
+        sleepTime, wakeTime = [22, 7]
+    sleepSlots = get_sleep_slots(sleepTime, wakeTime)
+    eventSlots= get_event_slots(intYear, intMonth, intDay)
 
     currentDate = currentDate.strftime('%d.%m.%Y')
     todayDate = todayDate.strftime('%d.%m.%Y')
+
     return render_template('plan/schedule.html', currentDate=currentDate,
                            todayDate=todayDate, year=year, month=month, day=day,
                            maxTemp=maxTemp, minTemp=minTemp, isToday=isToday, tempAvailable=tempAvailable,
@@ -252,6 +190,7 @@ def event(year, month, day, time):
         flash('Don\'t manipulate URL')
         return redirect(url_for('.schedule', year=year, month=month, day=day))
     intTime = int(time)
+
     date = datetime(intYear, intMonth, intDay).date()
     displayDate = date.strftime('%d.%m.%Y')
     displayTime = f"{intTime:02d}"
@@ -276,6 +215,7 @@ def edit_event(year, month, day, time):
     intMonth = int(month)
     intDay = int(day)
     date = datetime(intYear, intMonth, intDay).date()
+
     if not check_time(time):
         flash('Don\'t manipulate URL')
         return redirect(url_for('.schedule', year=year, month=month, day=day))
@@ -331,17 +271,14 @@ def check_date(year, month, day):
     except:
         flash('Year, month and day must be integers!')
         return False
-
     if intYear < 2000 or intYear > 3000:
         flash('Scheduling for before the year 2000 and after the year 3000 is not possible for now')
         return False
-
     try:
         session['date'] = datetime(intYear, intMonth, intDay)
     except:
         flash('Invalid date!')
         return False
-
     return True
 
 def check_time(time):
@@ -350,9 +287,108 @@ def check_time(time):
     except:
         flash('Time must be an integer!')
         return False
-
     if intTime > 23 or intTime < 0:
         flash('Time out of bound')
         return False
-
     return True
+
+def test_url(url):
+    try:
+        response = requests.get(url)
+        return True
+    except:
+        return False
+
+def create_calendar(currentDate):
+    nOfDaysInMonth = cld.monthrange(currentDate.year, currentDate.month)[1]
+    startDayOfMonth = currentDate.weekday()
+    day = 1
+    ndays = []
+    while True:
+        week = []
+        lastWeek = False
+        for m in range(7):
+            if startDayOfMonth > 0:
+                week.append('')
+                startDayOfMonth -= 1
+            elif day <= nOfDaysInMonth:
+                if day == nOfDaysInMonth:
+                    lastWeek = True
+                week.append(day)
+                day += 1
+            else:
+                week.append('')
+        ndays.append(week)
+        if lastWeek:
+            break
+    return ndays
+
+def get_current_temperature(key, location):
+    url = 'http://api.weatherapi.com/v1/current.json?key=' + key + '&q=' + location + '&aqi=no'
+    if test_url(url):
+        response = requests.get(url)
+        list_of_data = response.json()
+        maxTemp = str(list_of_data['current']['temp_c'])
+        minTemp = str(list_of_data['current']['temp_c'])
+    else:
+        return '',''
+    return maxTemp, minTemp
+
+def get_past_temperature(key, location, deltaDate):
+    url = 'http://api.weatherapi.com/v1/forecast.json?key=' + key + '&q=' + location + '&days=3&aqi=no&alerts=no'
+    if test_url(url):
+        response = requests.get(url)
+        list_of_data = response.json()
+        maxTemp = str(list_of_data['forecast']['forecastday'][deltaDate - 1]['day']['maxtemp_c'])
+        minTemp = str(list_of_data['forecast']['forecastday'][deltaDate - 1]['day']['mintemp_c'])
+    else:
+        return '',''
+    return maxTemp, minTemp
+
+def get_future_temperature(key, location, year, month, day):
+    url = 'http://api.weatherapi.com/v1/history.json?key=' + key + '&q=' + location + '&dt=' + year + '-' + month + '-' + day
+    if test_url(url):
+        response = requests.get(url)
+        list_of_data = response.json()
+        maxTemp = str(list_of_data['forecast']['forecastday'][0]['day']['maxtemp_c'])
+        minTemp = str(list_of_data['forecast']['forecastday'][0]['day']['mintemp_c'])
+    else:
+        return '',''
+    return maxTemp, minTemp
+
+def get_time_slots():
+    timeNumbers = range(24)
+    timeSlots = []
+    for timeNumber in timeNumbers:
+        timeSlots.append(f"{timeNumber:02d}")
+    return timeSlots
+
+def get_sleep_slots(sleepTime, wakeTime):
+    timeNumbers = range(24)
+    sleepSlots = []
+    for timeNumber in timeNumbers:
+        if sleepTime > wakeTime:
+            if timeNumber < wakeTime or timeNumber >= sleepTime:
+                sleepSlots.append(True)
+            else:
+                sleepSlots.append(False)
+        elif sleepTime < wakeTime:
+            if timeNumber < wakeTime and timeNumber >= sleepTime:
+                sleepSlots.append(True)
+            else:
+                sleepSlots.append(False)
+        else:
+            sleepSlots.append(False)
+    return sleepSlots
+
+def get_event_slots(intYear, intMonth, intDay):
+    timeNumbers = range(24)
+    eventSlots = []
+    date = datetime(intYear, intMonth, intDay).date()
+    for timeNumber in timeNumbers:
+        event = Event.query.filter_by(user=current_user, date=date, time=timeNumber).first()
+        if event:
+            eventSlots.append(event.name)
+        else:
+            eventSlots.append('no event')
+    return eventSlots

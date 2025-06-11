@@ -23,9 +23,9 @@
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
                 <li><a href="/">Home</a></li>
-                <li><a href="/user">Profile</a></li>
-                <li><a href="/plan">Calendar</a></li>
-                <li><a href="/plan/today">Schedule</a></li>
+                <li><a href="{{ url_for('main.user') }}">Profile</a></li>
+                <li><a href="{{ url_for('plan.calendar') }}">Calendar</a></li>
+                <li><a href="{{ url_for('plan.today') }}">Schedule</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 {%if current_user.is_authenticated %}

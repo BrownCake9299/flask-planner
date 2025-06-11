@@ -11,9 +11,20 @@
     {% else %}
     <p>Happy to see you again!</p>
     {% endif %}
-    <p>The local date and time is {{ moment(current_time).format('LLL') }}.</p>
-    <p>That was {{ moment(current_time).fromNow(refresh=True) }}</p>
 </div>
-
-{{ wtf.quick_form(form) }}
+{% if not current_user.is_authenticated %}
+<div class="intro">
+    <p>This is a planner website. To use all functionalities, click the following button to log in:</p>
+    <a href="{{ url_for('auth.login') }}"><div class="calendar-nav interactable">Log In</div></a>
+</div>
+{% else %}
+<div class="intro">
+    <p>To access the calendar, click the following button:</p>
+    <a href="{{ url_for('plan.calendar') }}"><div class="calendar-nav interactable">Calendar</div></a>
+</div>
+<div class="intro">
+    <p>To access today's schedule, click the following button:</p>
+    <a href="{{ url_for('plan.today') }}"><div class="calendar-nav interactable">Schedule</div></a>
+</div>
+{% endif %}
 {% endblock %}

@@ -32,13 +32,9 @@
         {% for nday in nweek %}
             {% if not nday %}
                 <div class="empty-day">{{ nday }}</div>
-            {% elif nday == todayDay and inTodayYearMonth %}
-                <a href="{{ url_for('.schedule', year=currentYear, month=currentMonthInN, day=nday) }}" >
-                    <div class="n-of-day today interactable">{{ nday }}</div>
-                </a>
             {% else %}
-                <a href="{{ url_for('.schedule', year=currentYear, month=currentMonthInN, day=nday) }}" >
-                    <div class="n-of-day interactable">{{ nday }}</div>
+                <a href="{{ url_for('.schedule', year=currentYear, month=intMonth, day=nday) }}" >
+                    <div class="n-of-day {% if nday == todayDay and inTodayYearMonth %}today{% endif %} interactable">{{ nday }}</div>
                 </a>
             {% endif %}
         {% endfor %}

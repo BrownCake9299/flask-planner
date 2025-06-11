@@ -6,6 +6,10 @@ body {
     background: #e0ffe0 !important;
 }
 
+div.intro {
+    padding: 10px;
+}
+
 div.interactable {
     opacity: 1;
     transition: opacity 200ms, border-color 200ms, color 200ms;
